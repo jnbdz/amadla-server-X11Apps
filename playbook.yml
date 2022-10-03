@@ -1,0 +1,36 @@
+---
+- name: 'X Apps | Provision Amadla Image'
+  hosts: all
+  any_errors_fatal: true # stop if anything is wrong
+  gather_facts: true
+  become: true # Means become `root` if set with true
+  become_user: root
+  become_method: sudo
+  vars:
+    user_username: "{{ lookup('env','USER_USERNAME') }}"
+    user_server_password: "{{ lookup('env','USER_SERVER_PASSWORD') }}"
+  tasks:
+    # == `apt update`
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+    
+    # Make sure all the packages are updated to the lastest version
+    - name: Update all packages to their latest version
+      apt:
+         name: "*"
+         state: latest
+
+    # Doc: https://wiki.debian.org/Xorg
+    - name: Install basic packages
+      apt:
+        pkg:
+        - xorg # or xserver-xorg-core (less stuff)
+        - xauth # The xauth program is used to edit and display the authorization information used in connecting to the X server.
+        state: latest
+  
+    # After updating and installing new packages you might have packages that are not useful anymore
+    # this will remove them
+    - name: Remove useless packages from the cache
+      apt:
+        autoclean: yes
